@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<title>نموذج تجريبي - لوحة المركز المسؤول</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#F5F3EC;
+    --surface:#FFFFFF;
+    --ink:#212B2A;
+    --ink-soft:#63706A;
+    --ink-faint:#9AA39D;
+    --accent:#2F6F62;
+    --accent-light:#DEEBE5;
+    --gold:#C98A2C;
+    --gold-light:#F6E8D2;
+    --line:#DDD8CC;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    font-family:'IBM Plex Sans Arabic', sans-serif;
+    background:var(--bg);
+    color:var(--ink);
+  }
+  .app{
+    display:flex;
+    max-width:1040px;
+    margin:0 auto;
+    min-height:560px;
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:14px;
+    overflow:hidden;
+  }
+  /* ===== List column ===== */
+  .list-col{
+    width:340px;
+    flex-shrink:0;
+    background:#FBFAF6;
+    border-left:1px solid var(--line);
+    display:flex;
+    flex-direction:column;
+  }
+  .list-header{
+    padding:18px 18px 12px;
+    border-bottom:1px solid var(--line);
+  }
+  .list-header h1{font-size:16px;font-weight:600;margin:0 0 4px;}
+  .list-header .count{font-size:12.5px;color:var(--ink-soft);}
+  .tabs{display:flex;gap:6px;padding:12px 18px 6px;}
+  .tab{
+    font-size:12px;padding:5px 10px;border:1px solid var(--line);border-radius:999px;
+    background:#FCFBF8;color:var(--ink-soft);cursor:pointer;
+  }
+  .tab.active{background:var(--ink);color:#fff;border-color:var(--ink);}
+  .teacher-list{list-style:none;margin:0;padding:6px 10px 14px;overflow-y:auto;}
+  .teacher-item{
+    padding:11px 12px;
+    border-radius:8px;
+    cursor:pointer;
+    margin-bottom:4px;
+    border:1px solid transparent;
+  }
+  .teacher-item:hover{background:var(--accent-light);}
+  .teacher-item.active{
+    background:var(--accent-light);
+    border-color:var(--accent);
+  }
+  .ti-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:3px;}
+  .ti-name{font-size:13.5px;font-weight:600;}
+  .ti-meta{font-size:12px;color:var(--ink-soft);}
+  .badge{
+    font-size:11px;
+    padding:3px 9px;
+    border-radius:999px;
+    white-space:nowrap;
+  }
+  .badge.pending{background:var(--gold-light);color:#8A5E17;}
+  .badge.done{background:var(--accent-light);color:var(--accent);}
+  /* ===== Detail column ===== */
+  .detail-col{
+    flex:1;
+    padding:24px 28px 32px;
+    min-width:0;
+    overflow-y:auto;
+  }
+  .detail-header{margin-bottom:18px;}
+  .detail-header h2{font-size:19px;font-weight:600;margin:0 0 4px;}
+  .detail-header .sub{font-size:13px;color:var(--ink-soft);}
+  .info-card{
+    border:1px solid var(--line);
+    border-right:3px solid var(--accent);
+    border-radius:8px;
+    padding:16px 18px;
+    background:var(--surface);
+    margin-bottom:16px;
+  }
+  .info-row{display:flex;gap:24px;margin-bottom:12px;flex-wrap:wrap;}
+  .info-field{flex:1;min-width:160px;}
+  .info-field label{display:block;font-size:12px;color:var(--ink-soft);margin-bottom:3px;}
+  .info-field .val{font-size:13.5px;}
+  .student-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:2px;}
+  .student-chip{
+    font-size:12px;padding:4px 10px;background:var(--accent-light);
+    color:var(--accent);border-radius:999px;
+  }
+  .assess-line{display:flex;align-items:center;gap:8px;font-size:13.5px;margin-top:8px;}
+  .dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+  .dot.on{background:var(--accent);}
+  .dot.off{background:var(--ink-faint);}
+  .review-card{
+    background:var(--gold-light);
+    border:1px solid #E7CFA0;
+    border-radius:8px;
+    padding:16px 18px;
+  }
+  .review-card .rb-title{font-size:13px;color:#8A5E17;font-weight:600;margin-bottom:10px;}
+  .review-card textarea, .review-card input{
+    width:100%;font-family:inherit;font-size:13.5px;
+    border:1px solid #E7CFA0;border-radius:6px;padding:8px 10px;background:#FFFDF8;
+  }
+  .review-card textarea{min-height:70px;resize:vertical;margin-bottom:10px;}
+  .review-card input[type=date]{max-width:170px;margin-bottom:12px;}
+  .save-btn{
+    font-size:13.5px;padding:8px 18px;border:none;border-radius:6px;
+    background:var(--gold);color:#fff;cursor:pointer;font-weight:500;
+  }
+  .save-btn:hover{background:#B47A22;}
+  .reviewed-note{
+    background:var(--surface);
+    border:1px solid #E7CFA0;
+    border-radius:6px;
+    padding:10px 12px;
+    font-size:13px;
+    margin-bottom:10px;
+  }
+  .reviewed-date{font-size:12px;color:#9C7A3E;}
+  .saved-flash{
+    font-size:12.5px;color:var(--accent);margin-top:8px;opacity:0;transition:opacity .3s;
+  }
+  .saved-flash.show{opacity:1;}
+</style>
+</head>
+<body>
+
+<div class="app">
+  <aside class="list-col">
+    <div class="list-header">
+      <h1>لوحة المركز المسؤول</h1>
+      <div class="count" id="listCount"></div>
+    </div>
+    <div class="tabs" id="tabs"></div>
+    <ul class="teacher-list" id="teacherList"></ul>
+  </aside>
+
+  <main class="detail-col" id="detailCol"></main>
+</div>
+
+<script>
+const teachers = [
+  {
+    id: 1, name: "أ. سارة خليل", subject: "رياضيات", grade: "الرابع", month: "أيلول",
+    supportTeacher: "أ. ريما عودة",
+    students: ["محمد الأحمد","لينا خطيب"],
+    gaps: "ضعف في الطلاقة بجدول الضرب، وصعوبة في تفسير المسائل الكلامية",
+    computerizedTest: { done:true, date:"2026-10-12" },
+    alternativeAssessment: { done:false, date:"" },
+    review: { note:"", date:"" }
+  },
+  {
+    id: 2, name: "أ. نور حماد", subject: "اللغة العربية", grade: "الخامس", month: "أيلول",
+    supportTeacher: "أ. هبة سلامة",
+    students: ["يزن العلي"],
+    gaps: "صعوبة في القراءة الجهرية وضبط أواخر الكلمات",
+    computerizedTest: { done:false, date:"" },
+    alternativeAssessment: { done:true, date:"2026-10-05" },
+    review: { note:"", date:"" }
+  },
+  {
+    id: 3, name: "أ. محمود درويش", subject: "العلوم", grade: "السادس", month: "تشرين أول",
+    supportTeacher: "أ. رنا فارس",
+    students: ["سما يوسف","عمر زيدان","تالا نجم"],
+    gaps: "صعوبة بربط المفاهيم العلمية بالتجارب العملية",
+    computerizedTest: { done:true, date:"2026-11-02" },
+    alternativeAssessment: { done:true, date:"2026-11-09" },
+    review: { note:"تمت متابعة الطلاب الثلاثة، ملاحظ تحسن بسيط لدى سما وعمر. يُنصح بتكثيف التقييم البديل للربع القادم.", date:"2026-11-15" }
+  },
+  {
+    id: 4, name: "أ. ديمة صالح", subject: "English", grade: "الثالث", month: "أيلول",
+    supportTeacher: "أ. جود مطر",
+    students: ["كرم أبو ريا"],
+    gaps: "Weak vocabulary retention and spelling",
+    computerizedTest: { done:false, date:"" },
+    alternativeAssessment: { done:false, date:"" },
+    review: { note:"", date:"" }
+  },
+  {
+    id: 5, name: "أ. ليان قاسم", subject: "עברית", grade: "الرابع", month: "تشرين أول",
+    supportTeacher: "أ. عبير حمدان",
+    students: ["آدم صبح","رهف طه"],
+    gaps: "קושי בקריאה שוטפת והבנת הנקרא",
+    computerizedTest: { done:true, date:"2026-11-01" },
+    alternativeAssessment: { done:false, date:"" },
+    review: { note:"راجعت الملف، الرجاء إضافة تاريخ لخطة المتابعة القادمة قبل نهاية الفصل.", date:"2026-11-10" }
+  },
+  {
+    id: 6, name: "أ. وسام عيسى", subject: "المواضيع الاثرائية", grade: "الخامس", month: "أيلول",
+    supportTeacher: "أ. نادين شاهين",
+    students: [],
+    gaps: "لم يتم تحديد الفجوات بعد",
+    computerizedTest: { done:false, date:"" },
+    alternativeAssessment: { done:false, date:"" },
+    review: { note:"", date:"" }
+  }
+];
+
+let currentFilter = 'all';
+let currentId = teachers[0].id;
+
+function isPending(t){ return !t.review.date; }
+
+function renderTabs(){
+  const counts = {
+    all: teachers.length,
+    pending: teachers.filter(isPending).length,
+    done: teachers.filter(t => !isPending(t)).length
+  };
+  const tabsDef = [
+    { key:'all', label:'الكل' },
+    { key:'pending', label:`بانتظار المراجعة (${counts.pending})` },
+    { key:'done', label:`تمت المراجعة (${counts.done})` }
+  ];
+  document.getElementById('tabs').innerHTML = tabsDef.map(t =>
+    `<span class="tab${currentFilter===t.key?' active':''}" onclick="setFilter('${t.key}')">${t.label}</span>`
+  ).join('');
+  document.getElementById('listCount').textContent = `${counts.pending} من أصل ${counts.all} بانتظار المراجعة`;
+}
+
+function setFilter(f){
+  currentFilter = f;
+  const list = filteredTeachers();
+  if (list.length && !list.find(t => t.id === currentId)) currentId = list[0].id;
+  renderAll();
+}
+
+function filteredTeachers(){
+  if (currentFilter === 'pending') return teachers.filter(isPending);
+  if (currentFilter === 'done') return teachers.filter(t => !isPending(t));
+  return teachers;
+}
+
+function renderList(){
+  const list = filteredTeachers();
+  const el = document.getElementById('teacherList');
+  if (!list.length){
+    el.innerHTML = `<div style="padding:20px 10px;font-size:13px;color:var(--ink-soft);text-align:center">لا يوجد معلمين ضمن هذا الفلتر</div>`;
+    return;
+  }
+  el.innerHTML = list.map(t => `
+    <li class="teacher-item${t.id===currentId?' active':''}" onclick="selectTeacher(${t.id})">
+      <div class="ti-top">
+        <span class="ti-name">${t.name}</span>
+        <span class="badge ${isPending(t)?'pending':'done'}">${isPending(t)?'بانتظار المراجعة':'تمت المراجعة'}</span>
+      </div>
+      <div class="ti-meta">${t.subject} - الصف ${t.grade} - ${t.month}</div>
+    </li>
+  `).join('');
+}
+
+function selectTeacher(id){
+  currentId = id;
+  renderAll();
+}
+
+function assessLine(label, val){
+  return `
+    <div class="assess-line">
+      <span class="dot ${val.done?'on':'off'}"></span>
+      <span>${label}: ${val.done ? 'تم بتاريخ ' + val.date : 'لم يحدث'}</span>
+    </div>`;
+}
+
+function renderDetail(){
+  const t = teachers.find(x => x.id === currentId);
+  const col = document.getElementById('detailCol');
+  if (!t){
+    col.innerHTML = `<div style="padding:40px;text-align:center;color:var(--ink-soft)">اختر معلم/ة من القائمة لعرض التفاصيل</div>`;
+    return;
+  }
+  col.innerHTML = `
+    <div class="detail-header">
+      <h2>${t.name}</h2>
+      <div class="sub">${t.subject} - الصف ${t.grade} - قسم التعلم الفردي لشهر ${t.month}</div>
+    </div>
+
+    <div class="info-card">
+      <div class="info-row">
+        <div class="info-field">
+          <label>اسم المعلم/ة المسؤولة عن التعلم الفردي</label>
+          <div class="val">${t.supportTeacher}</div>
+        </div>
+      </div>
+      <div class="info-row">
+        <div class="info-field">
+          <label>الطلاب المسجلين</label>
+          <div class="student-chips">${
+            t.students.length
+              ? t.students.map(s => `<span class="student-chip">${s}</span>`).join('')
+              : '<span style="font-size:12.5px;color:var(--ink-faint)">لا يوجد طلاب مضافين</span>'
+          }</div>
+        </div>
+      </div>
+      <div class="info-row">
+        <div class="info-field">
+          <label>الفجوات التي يتم العمل عليها</label>
+          <div class="val">${t.gaps}</div>
+        </div>
+      </div>
+      ${assessLine('الاختبار المحوسب', t.computerizedTest)}
+      ${assessLine('التقييم البديل', t.alternativeAssessment)}
+    </div>
+
+    <div class="review-card">
+      <div class="rb-title">مراجعتك كمركز مسؤول</div>
+      ${
+        t.review.date
+        ? `<div class="reviewed-note">${t.review.note || 'تمت المراجعة بدون ملاحظات'}</div>
+           <div class="reviewed-date">آخر فحص: ${t.review.date}</div>
+           <div style="margin-top:12px">
+             <label style="font-size:12px;color:#8A5E17;display:block;margin-bottom:4px">تحديث الملاحظة</label>
+             <textarea id="noteInput">${t.review.note}</textarea>
+             <label style="font-size:12px;color:#8A5E17;display:block;margin-bottom:4px">تاريخ الفحص</label>
+             <input type="date" id="dateInput" value="${t.review.date}">
+             <div><button class="save-btn" onclick="saveReview(${t.id})">حفظ التحديث</button></div>`
+        : `<label style="font-size:12px;color:#8A5E17;display:block;margin-bottom:4px">ملاحظة (اختياري)</label>
+           <textarea id="noteInput" placeholder="اكتب ملاحظتك إن وجدت..."></textarea>
+           <label style="font-size:12px;color:#8A5E17;display:block;margin-bottom:4px">تاريخ الفحص</label>
+           <input type="date" id="dateInput">
+           <div><button class="save-btn" onclick="saveReview(${t.id})">حفظ المراجعة</button></div>`
+      }
+      <div class="saved-flash" id="savedFlash">تم حفظ المراجعة</div>
+    </div>
+  `;
+}
+
+function saveReview(id){
+  const t = teachers.find(x => x.id === id);
+  const dateVal = document.getElementById('dateInput').value;
+  if (!dateVal){
+    alert('الرجاء تحديد تاريخ الفحص قبل الحفظ');
+    return;
+  }
+  t.review.note = document.getElementById('noteInput').value.trim();
+  t.review.date = dateVal;
+  renderAll();
+  const flash = document.getElementById('savedFlash');
+  if (flash){
+    flash.classList.add('show');
+    setTimeout(() => flash.classList.remove('show'), 1600);
+  }
+}
+
+function renderAll(){
+  renderTabs();
+  renderList();
+  renderDetail();
+}
+
+renderAll();
+</script>
+
+</body>
+</html>

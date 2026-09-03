@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<title>نموذج تجريبي - واجهة المعلم</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#F5F3EC;
+    --surface:#FFFFFF;
+    --ink:#212B2A;
+    --ink-soft:#63706A;
+    --ink-faint:#9AA39D;
+    --accent:#2F6F62;
+    --accent-light:#DEEBE5;
+    --gold:#C98A2C;
+    --gold-light:#F6E8D2;
+    --line:#DDD8CC;
+    --radius:10px;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    font-family:'IBM Plex Sans Arabic', sans-serif;
+    background:var(--bg);
+    color:var(--ink);
+  }
+  .app{
+    display:flex;
+    max-width:1040px;
+    margin:0 auto;
+    min-height:560px;
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:14px;
+    overflow:hidden;
+  }
+  /* ===== Sidebar ===== */
+  .sidebar{
+    width:200px;
+    flex-shrink:0;
+    background:#FBFAF6;
+    border-left:1px solid var(--line);
+    padding:20px 0;
+  }
+  .sidebar-header{
+    padding:0 18px 16px;
+    border-bottom:1px solid var(--line);
+    margin-bottom:10px;
+  }
+  .sidebar-header .name{font-weight:600;font-size:15px;}
+  .sidebar-header .role{font-size:12px;color:var(--ink-soft);margin-top:2px;}
+  .month-list{list-style:none;margin:0;padding:0;}
+  .month-item{
+    padding:9px 18px;
+    font-size:14px;
+    color:var(--ink-soft);
+    cursor:pointer;
+    border-right:3px solid transparent;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+  }
+  .month-item:hover{background:var(--accent-light);}
+  .month-item.active{
+    color:var(--accent);
+    font-weight:600;
+    border-right-color:var(--accent);
+    background:var(--accent-light);
+  }
+  .month-badge{
+    font-size:11px;
+    color:var(--ink-faint);
+    min-width:20px;
+    text-align:center;
+  }
+  .month-item.active .month-badge{color:var(--accent);}
+  .month-badge.done{color:var(--accent);}
+  /* ===== Main ===== */
+  .main{
+    flex:1;
+    padding:24px 28px 32px;
+    min-width:0;
+  }
+  .topbar{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    margin-bottom:6px;
+  }
+  .topbar h1{
+    font-size:19px;
+    font-weight:600;
+    margin:0;
+  }
+  .topbar .sub{
+    font-size:13px;
+    color:var(--ink-soft);
+    margin-top:4px;
+  }
+  .save-indicator{
+    font-size:12px;
+    color:var(--accent);
+    opacity:0;
+    transition:opacity .3s;
+    white-space:nowrap;
+  }
+  .save-indicator.show{opacity:1;}
+  .entries{
+    margin-top:20px;
+    display:flex;
+    flex-direction:column;
+    gap:16px;
+  }
+  .entry{
+    border:1px solid var(--line);
+    border-right:3px solid var(--accent);
+    border-radius:8px;
+    padding:16px 18px;
+    background:var(--surface);
+  }
+  .entry-row{
+    display:flex;
+    gap:14px;
+    margin-bottom:12px;
+    flex-wrap:wrap;
+  }
+  .field{flex:1;min-width:180px;}
+  .field label{
+    display:block;
+    font-size:12px;
+    color:var(--ink-soft);
+    margin-bottom:4px;
+  }
+  select, textarea, input[type=text]{
+    width:100%;
+    font-family:inherit;
+    font-size:13.5px;
+    border:1px solid var(--line);
+    border-radius:6px;
+    padding:7px 9px;
+    background:#FCFBF8;
+    color:var(--ink);
+  }
+  textarea{resize:vertical;min-height:38px;}
+  select:focus, textarea:focus, input:focus{
+    outline:none;
+    border-color:var(--accent);
+  }
+  .group-label{
+    font-size:12px;
+    color:var(--ink-soft);
+    margin:12px 0 6px;
+  }
+  .chip-row{
+    display:flex;
+    flex-wrap:wrap;
+    gap:7px;
+  }
+  .chip{
+    font-size:12.5px;
+    padding:5px 12px;
+    border:1px solid var(--line);
+    border-radius:999px;
+    cursor:pointer;
+    background:#FCFBF8;
+    color:var(--ink-soft);
+    user-select:none;
+  }
+  .chip:hover{border-color:var(--accent);}
+  .chip.selected{
+    background:var(--accent);
+    border-color:var(--accent);
+    color:#fff;
+    font-weight:500;
+  }
+  .entry-footer{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-top:12px;
+    padding-top:10px;
+    border-top:1px solid var(--line);
+  }
+  .remove-btn{
+    font-size:12px;
+    color:var(--ink-faint);
+    background:none;
+    border:none;
+    cursor:pointer;
+  }
+  .remove-btn:hover{color:#B24444;}
+  .add-entry{
+    margin-top:6px;
+    font-size:13.5px;
+    color:var(--accent);
+    background:var(--accent-light);
+    border:1px dashed var(--accent);
+    border-radius:8px;
+    padding:10px;
+    text-align:center;
+    cursor:pointer;
+    width:100%;
+  }
+  .add-entry:hover{background:#CFE4DB;}
+  .empty-state{
+    text-align:center;
+    padding:36px 0 20px;
+    color:var(--ink-soft);
+    font-size:14px;
+  }
+  /* ===== Role switch ===== */
+  .role-switch{display:flex;gap:6px;margin-top:8px;}
+  .role-btn{
+    font-size:12px;padding:5px 10px;border:1px solid var(--line);
+    border-radius:6px;background:#FCFBF8;color:var(--ink-soft);cursor:pointer;
+  }
+  .role-btn.active{background:var(--ink);color:#fff;border-color:var(--ink);}
+  /* ===== Individual support section ===== */
+  .section-heading{font-size:15px;font-weight:600;margin:26px 0 10px;}
+  .support-card{
+    border:1px solid var(--line);
+    border-right:3px solid var(--gold);
+    border-radius:8px;
+    padding:16px 18px;
+    background:var(--surface);
+  }
+  .support-title{font-weight:600;font-size:14px;margin-bottom:12px;}
+  .student-chips{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:8px;}
+  .student-chip{
+    font-size:12.5px;padding:5px 6px 5px 10px;background:var(--accent-light);
+    color:var(--accent);border-radius:999px;display:inline-flex;align-items:center;gap:6px;
+  }
+  .student-chip button{background:none;border:none;color:var(--accent);cursor:pointer;font-size:13px;line-height:1;padding:0;}
+  .student-add{display:flex;gap:8px;}
+  .student-add input{flex:1;}
+  .student-add button{
+    white-space:nowrap;font-size:12.5px;padding:7px 12px;border:1px solid var(--accent);
+    color:var(--accent);background:var(--accent-light);border-radius:6px;cursor:pointer;
+  }
+  .assess-row{display:flex;align-items:center;gap:12px;margin-top:10px;}
+  .switch{position:relative;width:38px;height:22px;flex-shrink:0;}
+  .switch input{opacity:0;width:0;height:0;position:absolute;}
+  .slider{position:absolute;inset:0;background:#DEDAD0;border-radius:999px;cursor:pointer;transition:.2s;}
+  .slider:before{content:'';position:absolute;width:16px;height:16px;left:3px;top:3px;background:#fff;border-radius:50%;transition:.2s;}
+  .switch input:checked + .slider{background:var(--gold);}
+  .switch input:checked + .slider:before{transform:translateX(-16px);}
+  .assess-label{font-size:13.5px;flex:1;}
+  .assess-date{width:150px;}
+  .assess-date[disabled]{opacity:.4;}
+  .review-box{margin-top:16px;background:var(--gold-light);border:1px solid #E7CFA0;border-radius:8px;padding:14px 16px;}
+  .review-box .rb-title{font-size:12.5px;color:#8A5E17;font-weight:600;margin-bottom:8px;}
+  .review-box textarea, .review-box input{background:#FFFDF8;}
+  .review-box.locked{color:#8A5E17;}
+  .review-empty{font-size:13px;color:#9C7A3E;}
+  body.role-center .teacher-editable{opacity:.5;pointer-events:none;}
+</style>
+</head>
+<body>
+
+<div class="app">
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="name">أ. سارة خليل</div>
+      <div class="role">رياضيات - الصف الرابع</div>
+    </div>
+    <ul class="month-list" id="monthList"></ul>
+  </aside>
+
+  <main class="main">
+    <div class="topbar">
+      <div>
+        <h1 id="monthTitle"></h1>
+        <div class="sub" id="monthSub"></div>
+        <div class="role-switch">
+          <button class="role-btn active" id="roleTeacherBtn" onclick="setRole('teacher')">عرض المعلم</button>
+          <button class="role-btn" id="roleCenterBtn" onclick="setRole('center')">عرض المركز المسؤول</button>
+        </div>
+      </div>
+      <div class="save-indicator" id="saveIndicator">تم الحفظ</div>
+    </div>
+
+    <div class="entries teacher-editable" id="entries"></div>
+    <button class="add-entry teacher-editable" id="addEntryBtn">+ إضافة مجال تعليمي جديد</button>
+
+    <div class="section-heading">التعلم الفردي</div>
+    <div class="support-card" id="supportCard"></div>
+  </main>
+</div>
+
+<script>
+const months = ["أيلول","تشرين أول","تشرين ثاني","كانون أول","كانون ثاني","شباط","آذار","نيسان","أيار"];
+const domains = ["الأعداد والعمليات","الهندسة والقياس","الإحصاء والاحتمالات","حل المسائل الكلامية"];
+const strategies = ["التعلم التعاوني","العصف الذهني","حل المشكلات","التعلم باللعب","الخرائط الذهنية","التعلم النشط"];
+const visualAids = ["السبورة الذكية","بطاقات تعليمية","نماذج مجسمة","عروض تقديمية","فيديو تعليمي","أوراق عمل"];
+const assessmentMethods = ["تقييم شفوي","ورقة عمل تقييمية","ملاحظة مباشرة","اختبار قصير","ملف إنجاز","عرض تطبيقي"];
+
+let currentMonth = months[0];
+let currentRole = 'teacher';
+let nextId = 3;
+
+const individualSupport = {};
+months.forEach(m => individualSupport[m] = {
+  teacherName: "",
+  students: [],
+  gaps: "",
+  computerizedTest: { done:false, date:"" },
+  alternativeAssessment: { done:false, date:"" },
+  review: { note:"", date:"" }
+});
+individualSupport[months[0]] = {
+  teacherName: "أ. ريما عودة",
+  students: ["محمد الأحمد","لينا خطيب"],
+  gaps: "ضعف في الطلاقة بجدول الضرب، وصعوبة في تفسير المسائل الكلامية",
+  computerizedTest: { done:true, date:"2026-10-12" },
+  alternativeAssessment: { done:false, date:"" },
+  review: { note:"", date:"" }
+};
+
+const data = {};
+months.forEach(m => data[m] = []);
+data[months[0]] = [
+  {
+    id: 1,
+    domain: domains[0],
+    subLessons: "جمع وطرح الأعداد ضمن 1000، مع وبدون إعادة تجميع",
+    successIndicator: "يحل الطالب 4 من 5 مسائل جمع وطرح بدقة",
+    strategies: ["التعلم التعاوني","حل المشكلات"],
+    visualAids: ["بطاقات تعليمية","أوراق عمل"],
+    assessmentMethods: ["ورقة عمل تقييمية"]
+  },
+  {
+    id: 2,
+    domain: domains[1],
+    subLessons: "التعرف على الأشكال الهندسية الأساسية وخصائصها",
+    successIndicator: "يميّز الطالب بين المربع والمستطيل والمثلث",
+    strategies: [],
+    visualAids: ["نماذج مجسمة"],
+    assessmentMethods: []
+  }
+];
+
+function renderSidebar(){
+  const list = document.getElementById('monthList');
+  list.innerHTML = '';
+  months.forEach(m => {
+    const li = document.createElement('li');
+    li.className = 'month-item' + (m === currentMonth ? ' active' : '');
+    const count = data[m].length;
+    li.innerHTML = `<span>${m}</span><span class="month-badge${count?' done':''}">${count || ''}</span>`;
+    li.onclick = () => { currentMonth = m; renderAll(); };
+    list.appendChild(li);
+  });
+}
+
+function toggleChip(entryId, field, value){
+  const entry = data[currentMonth].find(e => e.id === entryId);
+  const idx = entry[field].indexOf(value);
+  if (idx === -1) entry[field].push(value); else entry[field].splice(idx,1);
+  renderEntries();
+  showSaved();
+}
+
+function updateField(entryId, field, value){
+  const entry = data[currentMonth].find(e => e.id === entryId);
+  entry[field] = value;
+  showSaved();
+}
+
+function removeEntry(entryId){
+  data[currentMonth] = data[currentMonth].filter(e => e.id !== entryId);
+  renderAll();
+  showSaved();
+}
+
+function addEntry(){
+  data[currentMonth].push({
+    id: nextId++,
+    domain: domains[0],
+    subLessons: "",
+    successIndicator: "",
+    strategies: [],
+    visualAids: [],
+    assessmentMethods: []
+  });
+  renderAll();
+}
+
+let saveTimeout;
+function showSaved(){
+  const ind = document.getElementById('saveIndicator');
+  ind.classList.add('show');
+  clearTimeout(saveTimeout);
+  saveTimeout = setTimeout(() => ind.classList.remove('show'), 1400);
+}
+
+function chipRow(entryId, field, options, selected){
+  return options.map(opt => {
+    const isSel = selected.includes(opt);
+    return `<span class="chip${isSel?' selected':''}" onclick="toggleChip(${entryId},'${field}','${opt}')">${opt}</span>`;
+  }).join('');
+}
+
+function renderEntries(){
+  const wrap = document.getElementById('entries');
+  const list = data[currentMonth];
+
+  if (list.length === 0){
+    wrap.innerHTML = `<div class="empty-state">ما في مجالات مضافة لهذا الشهر بعد.<br>اضغط "إضافة مجال تعليمي جديد" بالأسفل للبدء.</div>`;
+    return;
+  }
+
+  wrap.innerHTML = list.map(e => `
+    <div class="entry">
+      <div class="entry-row">
+        <div class="field" style="max-width:220px">
+          <label>المجال التعليمي</label>
+          <select onchange="updateField(${e.id},'domain',this.value)">
+            ${domains.map(d => `<option ${d===e.domain?'selected':''}>${d}</option>`).join('')}
+          </select>
+        </div>
+        <div class="field">
+          <label>الدروس الفرعية اليومية</label>
+          <textarea onchange="updateField(${e.id},'subLessons',this.value)">${e.subLessons}</textarea>
+        </div>
+      </div>
+
+      <div class="group-label">الاستراتيجيات</div>
+      <div class="chip-row">${chipRow(e.id,'strategies',strategies,e.strategies)}</div>
+
+      <div class="group-label">وسائل الايضاح / الادوات</div>
+      <div class="chip-row">${chipRow(e.id,'visualAids',visualAids,e.visualAids)}</div>
+
+      <div class="group-label">طرق التقييم</div>
+      <div class="chip-row">${chipRow(e.id,'assessmentMethods',assessmentMethods,e.assessmentMethods)}</div>
+
+      <div class="entry-footer">
+        <div class="field" style="flex:1;margin-left:14px">
+          <label>مؤشر النجاح</label>
+          <input type="text" value="${e.successIndicator}" onchange="updateField(${e.id},'successIndicator',this.value)">
+        </div>
+        <button class="remove-btn" onclick="removeEntry(${e.id})">حذف المجال</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function renderAll(){
+  document.getElementById('monthTitle').textContent = currentMonth;
+  const count = data[currentMonth].length;
+  document.getElementById('monthSub').textContent = count
+    ? `${count} مجال/مجالات معبأة لهذا الشهر`
+    : 'لا يوجد مجالات معبأة بعد';
+  renderSidebar();
+  renderEntries();
+  renderSupport();
+}
+
+function setRole(role){
+  currentRole = role;
+  document.body.classList.toggle('role-center', role === 'center');
+  document.getElementById('roleTeacherBtn').classList.toggle('active', role === 'teacher');
+  document.getElementById('roleCenterBtn').classList.toggle('active', role === 'center');
+  renderSupport();
+}
+
+function assessRow(key, label, val){
+  return `
+    <div class="assess-row">
+      <label class="switch">
+        <input type="checkbox" ${val.done ? 'checked' : ''} onchange="toggleAssessment('${key}',this.checked)">
+        <span class="slider"></span>
+      </label>
+      <span class="assess-label">${label}</span>
+      <input type="date" class="assess-date" value="${val.date || ''}" ${val.done ? '' : 'disabled'} onchange="updateAssessmentDate('${key}',this.value)">
+    </div>`;
+}
+
+function reviewBoxHTML(s){
+  if (currentRole === 'center'){
+    return `
+      <div class="review-box">
+        <div class="rb-title">مراجعة المركز المسؤول</div>
+        <div class="field" style="margin-bottom:8px">
+          <label>ملاحظة (اختياري)</label>
+          <textarea onchange="updateReview('note',this.value)">${s.review.note}</textarea>
+        </div>
+        <div class="field" style="max-width:180px">
+          <label>تاريخ الفحص</label>
+          <input type="date" value="${s.review.date || ''}" onchange="updateReview('date',this.value)">
+        </div>
+      </div>`;
+  }
+  if (s.review.date){
+    return `
+      <div class="review-box locked">
+        <div class="rb-title">مراجعة المركز المسؤول</div>
+        <div style="font-size:13px;margin-bottom:6px">${s.review.note || 'تمت المراجعة بدون ملاحظات'}</div>
+        <div style="font-size:12px">تاريخ الفحص: ${s.review.date}</div>
+      </div>`;
+  }
+  return `
+    <div class="review-box locked">
+      <div class="rb-title">مراجعة المركز المسؤول</div>
+      <div class="review-empty">بانتظار مراجعة المركز المسؤول</div>
+    </div>`;
+}
+
+function renderSupport(){
+  const s = individualSupport[currentMonth];
+  const wrap = document.getElementById('supportCard');
+  wrap.innerHTML = `
+    <div class="teacher-editable">
+      <div class="support-title">بيانات التعلم الفردي</div>
+      <div class="field" style="max-width:260px;margin-bottom:14px">
+        <label>اسم المعلم/ة المسؤولة</label>
+        <input type="text" value="${s.teacherName}" onchange="updateSupportField('teacherName',this.value)">
+      </div>
+
+      <div class="group-label">الطلاب المسجلين بالتعلم الفردي</div>
+      <div class="student-chips">${
+        s.students.length
+          ? s.students.map((name,i) => `<span class="student-chip">${name}<button onclick="removeStudent(${i})">×</button></span>`).join('')
+          : '<span style="font-size:12.5px;color:var(--ink-faint)">لا يوجد طلاب مضافين بعد</span>'
+      }</div>
+      <div class="student-add">
+        <input type="text" id="newStudentInput" placeholder="اسم الطالب/ة">
+        <button onclick="addStudent()">إضافة طالب</button>
+      </div>
+
+      <div class="group-label" style="margin-top:14px">الفجوات التي يتم العمل عليها</div>
+      <textarea onchange="updateSupportField('gaps',this.value)">${s.gaps}</textarea>
+
+      ${assessRow('computerizedTest','الاختبار المحوسب', s.computerizedTest)}
+      ${assessRow('alternativeAssessment','التقييم البديل', s.alternativeAssessment)}
+    </div>
+
+    ${reviewBoxHTML(s)}
+  `;
+}
+
+function updateSupportField(field, value){
+  individualSupport[currentMonth][field] = value;
+  showSaved();
+}
+
+function addStudent(){
+  const input = document.getElementById('newStudentInput');
+  const name = input.value.trim();
+  if (!name) return;
+  individualSupport[currentMonth].students.push(name);
+  renderSupport();
+  showSaved();
+}
+
+function removeStudent(i){
+  individualSupport[currentMonth].students.splice(i,1);
+  renderSupport();
+  showSaved();
+}
+
+function toggleAssessment(key, checked){
+  individualSupport[currentMonth][key].done = checked;
+  if (!checked) individualSupport[currentMonth][key].date = "";
+  renderSupport();
+  showSaved();
+}
+
+function updateAssessmentDate(key, val){
+  individualSupport[currentMonth][key].date = val;
+  showSaved();
+}
+
+function updateReview(field, val){
+  individualSupport[currentMonth].review[field] = val;
+  showSaved();
+}
+
+document.getElementById('addEntryBtn').onclick = addEntry;
+renderAll();
+</script>
+
+</body>
+</html>

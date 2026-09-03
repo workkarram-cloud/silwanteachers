@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<title>نموذج تجريبي - لوحة الإدارة</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<style>
+  :root{
+    --bg:#F5F3EC;
+    --surface:#FFFFFF;
+    --ink:#212B2A;
+    --ink-soft:#63706A;
+    --ink-faint:#9AA39D;
+    --accent:#2F6F62;
+    --accent-light:#DEEBE5;
+    --gold:#C98A2C;
+    --gold-light:#F6E8D2;
+    --line:#DDD8CC;
+    --red:#B24444;
+    --red-light:#F5E1DF;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    font-family:'IBM Plex Sans Arabic', sans-serif;
+    background:var(--bg);
+    color:var(--ink);
+  }
+  .app{
+    max-width:1040px;
+    margin:0 auto;
+    padding:26px 28px 40px;
+  }
+  .page-header h1{font-size:19px;font-weight:600;margin:0 0 4px;}
+  .page-header .sub{font-size:13px;color:var(--ink-soft);margin-bottom:18px;}
+
+  .filters{
+    display:flex;gap:10px;flex-wrap:wrap;
+    background:var(--surface);border:1px solid var(--line);border-radius:10px;
+    padding:14px 16px;margin-bottom:20px;
+  }
+  .filter-field{min-width:150px;}
+  .filter-field label{display:block;font-size:11.5px;color:var(--ink-soft);margin-bottom:4px;}
+  .filter-field select{
+    width:100%;font-family:inherit;font-size:13px;
+    border:1px solid var(--line);border-radius:6px;padding:7px 9px;background:#FCFBF8;color:var(--ink);
+  }
+
+  .kpi-row{display:flex;gap:14px;margin-bottom:22px;flex-wrap:wrap;}
+  .kpi-card{
+    flex:1;min-width:140px;
+    background:var(--surface);border:1px solid var(--line);border-radius:10px;
+    padding:14px 16px;
+  }
+  .kpi-card .kpi-num{font-size:22px;font-weight:700;color:var(--ink);}
+  .kpi-card .kpi-label{font-size:12px;color:var(--ink-soft);margin-top:2px;}
+  .kpi-card.accent .kpi-num{color:var(--accent);}
+  .kpi-card.gold .kpi-num{color:var(--gold);}
+  .kpi-card.red .kpi-num{color:var(--red);}
+
+  .chart-card{
+    background:var(--surface);border:1px solid var(--line);border-radius:10px;
+    padding:18px 20px;margin-bottom:18px;
+  }
+  .chart-card h3{font-size:14.5px;font-weight:600;margin:0 0 4px;}
+  .chart-card .chart-sub{font-size:12px;color:var(--ink-soft);margin-bottom:14px;}
+  .chart-wrap{position:relative;}
+
+  .teacher-table{width:100%;border-collapse:collapse;margin-top:6px;}
+  .teacher-table th{
+    font-size:11.5px;color:var(--ink-soft);font-weight:500;
+    text-align:right;padding:6px 8px;border-bottom:1px solid var(--line);
+  }
+  .teacher-table td{
+    font-size:13px;padding:9px 8px;border-bottom:1px solid #EFEBE0;
+  }
+  .bar-track{background:#EFEBE0;border-radius:999px;height:8px;width:100%;overflow:hidden;}
+  .bar-fill{height:100%;border-radius:999px;background:var(--accent);}
+  .bar-fill.warn{background:var(--gold);}
+  .bar-fill.low{background:var(--red);}
+  .pct{font-size:12px;color:var(--ink-soft);white-space:nowrap;}
+</style>
+</head>
+<body>
+
+<div class="app">
+  <div class="page-header">
+    <h1>لوحة الإدارة - تقارير الخطط السنوية</h1>
+    <div class="sub">السنة الدراسية 2026/2027</div>
+  </div>
+
+  <div class="filters">
+    <div class="filter-field">
+      <label>المادة</label>
+      <select id="fSubject" onchange="applyFilters()"></select>
+    </div>
+    <div class="filter-field">
+      <label>الصف</label>
+      <select id="fGrade" onchange="applyFilters()"></select>
+    </div>
+    <div class="filter-field">
+      <label>الشهر</label>
+      <select id="fMonth" onchange="applyFilters()"></select>
+    </div>
+  </div>
+
+  <div class="kpi-row" id="kpiRow"></div>
+
+  <div class="chart-card">
+    <h3>الاستراتيجيات الأكثر استخداماً</h3>
+    <div class="chart-sub">عدد مرات اختيار كل استراتيجية عبر كل المعلمين والمواد ضمن الفلتر الحالي</div>
+    <div class="chart-wrap"><canvas id="strategiesChart" height="150"></canvas></div>
+  </div>
+
+  <div class="chart-card">
+    <h3>تغطية المجالات التعليمية مقابل نسبتها بالامتحان</h3>
+    <div class="chart-sub">مقارنة بين نسبة الحصص المخصصة لكل مجال ونسبته الفعلية بالامتحان - لرصد فجوات التغطية</div>
+    <div class="chart-wrap"><canvas id="domainsChart" height="160"></canvas></div>
+  </div>
+
+  <div class="chart-card">
+    <h3>نسبة إكمال الخطة لكل معلم</h3>
+    <div class="chart-sub">لمتابعة الانضباط بتعبئة الخطة السنوية أولاً بأول</div>
+    <table class="teacher-table" id="teacherTable"></table>
+  </div>
+</div>
+
+<script>
+const subjects = ["كل المواد","رياضيات","اللغة العربية","العلوم","English","עברית","المواضيع الاثرائية"];
+const grades = ["كل الصفوف","الثالث","الرابع","الخامس","السادس"];
+const months = ["كل الأشهر","أيلول","تشرين أول","تشرين ثاني","كانون أول","كانون ثاني","شباط","آذار","نيسان","أيار"];
+
+const strategiesData = [
+  { name:"التعلم التعاوني", count:38 },
+  { name:"حل المشكلات", count:31 },
+  { name:"العصف الذهني", count:27 },
+  { name:"التعلم باللعب", count:22 },
+  { name:"الخرائط الذهنية", count:15 },
+  { name:"التعلم النشط", count:12 }
+];
+
+const domainsData = [
+  { name:"الأعداد والعمليات", coverage:42, examWeight:35 },
+  { name:"الهندسة والقياس", coverage:22, examWeight:25 },
+  { name:"الإحصاء والاحتمالات", coverage:10, examWeight:20 },
+  { name:"حل المسائل الكلامية", coverage:26, examWeight:20 }
+];
+
+const teachers = [
+  { name:"أ. سارة خليل", subject:"رياضيات", grade:"الرابع", completion:92 },
+  { name:"أ. نور حماد", subject:"اللغة العربية", grade:"الخامس", completion:78 },
+  { name:"أ. محمود درويش", subject:"العلوم", grade:"السادس", completion:100 },
+  { name:"أ. ديمة صالح", subject:"English", grade:"الثالث", completion:45 },
+  { name:"أ. ليان قاسم", subject:"עברית", grade:"الرابع", completion:88 },
+  { name:"أ. وسام عيسى", subject:"المواضيع الاثرائية", grade:"الخامس", completion:30 }
+];
+
+function fillSelect(id, options){
+  document.getElementById(id).innerHTML = options.map(o => `<option>${o}</option>`).join('');
+}
+fillSelect('fSubject', subjects);
+fillSelect('fGrade', grades);
+fillSelect('fMonth', months);
+
+let strategiesChart, domainsChart;
+
+function renderKPIs(){
+  const avgCompletion = Math.round(teachers.reduce((s,t)=>s+t.completion,0)/teachers.length);
+  const complete = teachers.filter(t=>t.completion>=90).length;
+  const lagging = teachers.filter(t=>t.completion<60).length;
+  document.getElementById('kpiRow').innerHTML = `
+    <div class="kpi-card">
+      <div class="kpi-num">${teachers.length}</div>
+      <div class="kpi-label">معلم/ة ضمن الفلتر الحالي</div>
+    </div>
+    <div class="kpi-card accent">
+      <div class="kpi-num">${avgCompletion}%</div>
+      <div class="kpi-label">متوسط نسبة إكمال الخطط</div>
+    </div>
+    <div class="kpi-card gold">
+      <div class="kpi-num">${complete}</div>
+      <div class="kpi-label">خطط مكتملة (90%+)</div>
+    </div>
+    <div class="kpi-card red">
+      <div class="kpi-num">${lagging}</div>
+      <div class="kpi-label">خطط متأخرة (أقل من 60%)</div>
+    </div>
+  `;
+}
+
+function renderStrategiesChart(){
+  const ctx = document.getElementById('strategiesChart');
+  if (strategiesChart) strategiesChart.destroy();
+  strategiesChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: strategiesData.map(d => d.name),
+      datasets: [{
+        data: strategiesData.map(d => d.count),
+        backgroundColor: '#2F6F62',
+        borderRadius: 5,
+        barThickness: 20
+      }]
+    },
+    options: {
+      indexAxis: 'y',
+      plugins: { legend: { display:false } },
+      scales: {
+        x: { grid:{ color:'#EFEBE0' }, ticks:{ font:{ family:"'IBM Plex Sans Arabic'", size:11.5 } } },
+        y: { grid:{ display:false }, ticks:{ font:{ family:"'IBM Plex Sans Arabic'", size:12.5 } } }
+      }
+    }
+  });
+}
+
+function renderDomainsChart(){
+  const ctx = document.getElementById('domainsChart');
+  if (domainsChart) domainsChart.destroy();
+  domainsChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: domainsData.map(d => d.name),
+      datasets: [
+        { label:'نسبة التغطية بالخطة', data: domainsData.map(d=>d.coverage), backgroundColor:'#2F6F62', borderRadius:4 },
+        { label:'النسبة بالامتحان', data: domainsData.map(d=>d.examWeight), backgroundColor:'#C98A2C', borderRadius:4 }
+      ]
+    },
+    options: {
+      plugins: {
+        legend: { position:'bottom', labels:{ font:{ family:"'IBM Plex Sans Arabic'", size:12 }, usePointStyle:true } }
+      },
+      scales: {
+        x: { grid:{ display:false }, ticks:{ font:{ family:"'IBM Plex Sans Arabic'", size:11.5 } } },
+        y: { grid:{ color:'#EFEBE0' }, ticks:{ callback:v=>v+'%', font:{ family:"'IBM Plex Sans Arabic'", size:11.5 } } }
+      }
+    }
+  });
+}
+
+function renderTeacherTable(){
+  const rows = teachers.map(t => {
+    const cls = t.completion>=90?'':(t.completion>=60?'warn':'low');
+    return `
+      <tr>
+        <td>${t.name}</td>
+        <td>${t.subject}</td>
+        <td>${t.grade}</td>
+        <td style="width:220px">
+          <div style="display:flex;align-items:center;gap:10px">
+            <div class="bar-track"><div class="bar-fill ${cls}" style="width:${t.completion}%"></div></div>
+            <span class="pct">${t.completion}%</span>
+          </div>
+        </td>
+      </tr>`;
+  }).join('');
+  document.getElementById('teacherTable').innerHTML = `
+    <thead><tr><th>المعلم/ة</th><th>المادة</th><th>الصف</th><th>نسبة الإكمال</th></tr></thead>
+    <tbody>${rows}</tbody>
+  `;
+}
+
+function applyFilters(){
+  // Prototype: الفلاتر بتوضح الشكل والتفاعل، بدون منطق فلترة حقيقي حالياً
+  renderKPIs();
+}
+
+renderKPIs();
+renderStrategiesChart();
+renderDomainsChart();
+renderTeacherTable();
+</script>
+
+</body>
+</html>

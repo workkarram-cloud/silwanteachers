@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<title>نموذج تجريبي - إدارة القوائم المرجعية</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#F5F3EC;
+    --surface:#FFFFFF;
+    --ink:#212B2A;
+    --ink-soft:#63706A;
+    --ink-faint:#9AA39D;
+    --accent:#2F6F62;
+    --accent-light:#DEEBE5;
+    --gold:#C98A2C;
+    --gold-light:#F6E8D2;
+    --line:#DDD8CC;
+    --red:#B24444;
+    --red-light:#F5E1DF;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    font-family:'IBM Plex Sans Arabic', sans-serif;
+    background:var(--bg);
+    color:var(--ink);
+  }
+  .app{
+    display:flex;
+    max-width:1040px;
+    margin:0 auto;
+    min-height:560px;
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:14px;
+    overflow:hidden;
+  }
+  /* ===== Sidebar ===== */
+  .sidebar{
+    width:230px;
+    flex-shrink:0;
+    background:#FBFAF6;
+    border-left:1px solid var(--line);
+    padding:20px 0;
+  }
+  .sidebar-header{padding:0 18px 16px;border-bottom:1px solid var(--line);margin-bottom:10px;}
+  .sidebar-header .title{font-weight:600;font-size:15px;}
+  .sidebar-header .role{font-size:12px;color:var(--ink-soft);margin-top:2px;}
+  .cat-list{list-style:none;margin:0;padding:0;}
+  .cat-item{
+    padding:10px 18px;font-size:14px;color:var(--ink-soft);cursor:pointer;
+    border-right:3px solid transparent;display:flex;justify-content:space-between;align-items:center;
+  }
+  .cat-item:hover{background:var(--accent-light);}
+  .cat-item.active{color:var(--accent);font-weight:600;border-right-color:var(--accent);background:var(--accent-light);}
+  .cat-count{font-size:11px;color:var(--ink-faint);}
+  .cat-item.active .cat-count{color:var(--accent);}
+  /* ===== Main ===== */
+  .main{flex:1;padding:24px 28px 32px;min-width:0;}
+  .main h1{font-size:19px;font-weight:600;margin:0 0 4px;}
+  .main .sub{font-size:13px;color:var(--ink-soft);margin-bottom:18px;}
+
+  .scope-filters{display:flex;gap:10px;margin-bottom:16px;}
+  .scope-filters select{
+    font-family:inherit;font-size:13px;border:1px solid var(--line);border-radius:6px;
+    padding:7px 9px;background:#FCFBF8;color:var(--ink);min-width:140px;
+  }
+
+  .add-row{
+    display:flex;gap:8px;margin-bottom:18px;
+    background:var(--accent-light);border:1px dashed var(--accent);border-radius:8px;padding:10px;
+  }
+  .add-row input{
+    flex:1;font-family:inherit;font-size:13.5px;border:1px solid var(--line);
+    border-radius:6px;padding:8px 10px;background:#FFFDF9;
+  }
+  .add-row input.weight{max-width:100px;flex:none;}
+  .add-row button{
+    font-size:13.5px;padding:8px 16px;border:none;border-radius:6px;
+    background:var(--accent);color:#fff;cursor:pointer;font-weight:500;white-space:nowrap;
+  }
+  .add-row button:hover{background:#265A4F;}
+
+  .item-list{display:flex;flex-direction:column;gap:8px;}
+  .item-row{
+    display:flex;align-items:center;gap:12px;
+    border:1px solid var(--line);border-radius:8px;padding:10px 14px;background:var(--surface);
+  }
+  .item-name{
+    flex:1;font-size:13.5px;border:1px solid transparent;border-radius:5px;
+    padding:5px 7px;background:transparent;font-family:inherit;color:var(--ink);
+  }
+  .item-name:focus{border-color:var(--accent);background:#FCFBF8;outline:none;}
+  .item-weight{
+    width:70px;font-size:13px;border:1px solid var(--line);border-radius:5px;
+    padding:5px 7px;font-family:inherit;text-align:center;
+  }
+  .usage-badge{
+    font-size:11px;padding:3px 9px;border-radius:999px;white-space:nowrap;
+    background:var(--gold-light);color:#8A5E17;
+  }
+  .usage-badge.zero{background:#EFEBE0;color:var(--ink-faint);}
+  .del-btn{
+    background:none;border:none;color:var(--ink-faint);cursor:pointer;font-size:13px;padding:4px;
+  }
+  .del-btn:hover{color:var(--red);}
+  .empty-state{text-align:center;padding:30px 0;color:var(--ink-soft);font-size:13.5px;}
+  .saved-flash{
+    font-size:12.5px;color:var(--accent);margin-top:12px;opacity:0;transition:opacity .3s;
+  }
+  .saved-flash.show{opacity:1;}
+</style>
+</head>
+<body>
+
+<div class="app">
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="title">إدارة القوائم المرجعية</div>
+      <div class="role">صلاحية الإدارة فقط</div>
+    </div>
+    <ul class="cat-list" id="catList"></ul>
+  </aside>
+
+  <main class="main">
+    <h1 id="mainTitle"></h1>
+    <div class="sub" id="mainSub"></div>
+
+    <div class="scope-filters" id="scopeFilters"></div>
+
+    <div class="add-row" id="addRow"></div>
+
+    <div class="item-list" id="itemList"></div>
+    <div class="saved-flash" id="savedFlash">تم الحفظ - انعكس التعديل على كل المعلمين فوراً</div>
+  </main>
+</div>
+
+<script>
+const categories = [
+  { key:'strategies', label:'الاستراتيجيات', hasWeight:false, hasSubject:false },
+  { key:'visualAids', label:'وسائل الايضاح / الادوات', hasWeight:false, hasSubject:false },
+  { key:'assessmentMethods', label:'طرق التقييم', hasWeight:false, hasSubject:false },
+  { key:'domains', label:'المجالات التعليمية', hasWeight:true, hasSubject:true }
+];
+
+const subjects = ["رياضيات","اللغة العربية","العلوم","English","עברית","المواضيع الاثرائية"];
+
+const store = {
+  strategies: [
+    { id:1, name:"التعلم التعاوني", usage:38 },
+    { id:2, name:"حل المشكلات", usage:31 },
+    { id:3, name:"العصف الذهني", usage:27 },
+    { id:4, name:"التعلم باللعب", usage:22 },
+    { id:5, name:"الخرائط الذهنية", usage:15 },
+    { id:6, name:"التعلم النشط", usage:0 }
+  ],
+  visualAids: [
+    { id:1, name:"السبورة الذكية", usage:29 },
+    { id:2, name:"بطاقات تعليمية", usage:24 },
+    { id:3, name:"نماذج مجسمة", usage:18 },
+    { id:4, name:"عروض تقديمية", usage:14 },
+    { id:5, name:"فيديو تعليمي", usage:9 },
+    { id:6, name:"أوراق عمل", usage:33 }
+  ],
+  assessmentMethods: [
+    { id:1, name:"تقييم شفوي", usage:20 },
+    { id:2, name:"ورقة عمل تقييمية", usage:35 },
+    { id:3, name:"ملاحظة مباشرة", usage:17 },
+    { id:4, name:"اختبار قصير", usage:26 },
+    { id:5, name:"ملف إنجاز", usage:6 },
+    { id:6, name:"عرض تطبيقي", usage:0 }
+  ],
+  domains: {
+    "رياضيات": [
+      { id:1, name:"الأعداد والعمليات", weight:35, usage:12 },
+      { id:2, name:"الهندسة والقياس", weight:25, usage:9 },
+      { id:3, name:"الإحصاء والاحتمالات", weight:20, usage:3 },
+      { id:4, name:"حل المسائل الكلامية", weight:20, usage:8 }
+    ],
+    "اللغة العربية": [
+      { id:5, name:"القراءة والفهم", weight:40, usage:11 },
+      { id:6, name:"القواعد والإملاء", weight:30, usage:10 },
+      { id:7, name:"التعبير الكتابي", weight:30, usage:7 }
+    ]
+  }
+};
+subjects.forEach(s => { if (!store.domains[s]) store.domains[s] = []; });
+
+let currentCat = 'strategies';
+let currentSubject = subjects[0];
+let nextIds = { strategies:7, visualAids:7, assessmentMethods:7, domains:8 };
+
+function catMeta(key){ return categories.find(c => c.key === key); }
+
+function renderSidebar(){
+  document.getElementById('catList').innerHTML = categories.map(c => {
+    const count = c.key === 'domains'
+      ? Object.values(store.domains).reduce((s,arr)=>s+arr.length,0)
+      : store[c.key].length;
+    return `
+      <li class="cat-item${c.key===currentCat?' active':''}" onclick="selectCat('${c.key}')">
+        <span>${c.label}</span><span class="cat-count">${count}</span>
+      </li>`;
+  }).join('');
+}
+
+function selectCat(key){
+  currentCat = key;
+  renderAll();
+}
+
+function renderScopeFilters(){
+  const meta = catMeta(currentCat);
+  const wrap = document.getElementById('scopeFilters');
+  if (!meta.hasSubject){ wrap.innerHTML = ''; return; }
+  wrap.innerHTML = `
+    <select onchange="currentSubject=this.value; renderAll();">
+      ${subjects.map(s => `<option ${s===currentSubject?'selected':''}>${s}</option>`).join('')}
+    </select>`;
+}
+
+function currentItems(){
+  return currentCat === 'domains' ? store.domains[currentSubject] : store[currentCat];
+}
+
+function renderAddRow(){
+  const meta = catMeta(currentCat);
+  const wrap = document.getElementById('addRow');
+  wrap.innerHTML = `
+    <input type="text" id="newItemName" placeholder="${meta.hasSubject ? 'اسم مجال جديد بمادة ' + currentSubject : 'عنصر جديد'}">
+    ${meta.hasWeight ? '<input type="number" id="newItemWeight" class="weight" placeholder="النسبة %" min="0" max="100">' : ''}
+    <button onclick="addItem()">إضافة</button>
+  `;
+}
+
+function addItem(){
+  const nameInput = document.getElementById('newItemName');
+  const name = nameInput.value.trim();
+  if (!name) return;
+  const meta = catMeta(currentCat);
+
+  if (currentCat === 'domains'){
+    const weight = parseInt(document.getElementById('newItemWeight').value) || 0;
+    store.domains[currentSubject].push({ id: nextIds.domains++, name, weight, usage:0 });
+  } else {
+    store[currentCat].push({ id: nextIds[currentCat]++, name, usage:0 });
+  }
+  renderAll();
+  flashSaved();
+}
+
+function updateName(id, value){
+  const item = currentItems().find(i => i.id === id);
+  item.name = value;
+  flashSaved();
+}
+
+function updateWeight(id, value){
+  const item = currentItems().find(i => i.id === id);
+  item.weight = parseInt(value) || 0;
+  flashSaved();
+}
+
+function deleteItem(id){
+  const item = currentItems().find(i => i.id === id);
+  if (item.usage > 0){
+    const ok = confirm(`هذا العنصر مستخدم بـ ${item.usage} خطة حالياً. حذفه بيشيله من كل الخطط اللي مستخدمة فيه. متأكد إنك بدك تحذفه؟`);
+    if (!ok) return;
+  }
+  if (currentCat === 'domains'){
+    store.domains[currentSubject] = store.domains[currentSubject].filter(i => i.id !== id);
+  } else {
+    store[currentCat] = store[currentCat].filter(i => i.id !== id);
+  }
+  renderAll();
+  flashSaved();
+}
+
+function renderItemList(){
+  const meta = catMeta(currentCat);
+  const items = currentItems();
+  const wrap = document.getElementById('itemList');
+
+  if (!items.length){
+    wrap.innerHTML = `<div class="empty-state">ما في عناصر بعد${meta.hasSubject ? ' لمادة ' + currentSubject : ''}. أضف واحد من الأعلى.</div>`;
+    return;
+  }
+
+  wrap.innerHTML = items.map(item => `
+    <div class="item-row">
+      <input class="item-name" value="${item.name}" onchange="updateName(${item.id}, this.value)">
+      ${meta.hasWeight ? `<input class="item-weight" type="number" value="${item.weight}" min="0" max="100" onchange="updateWeight(${item.id}, this.value)">` : ''}
+      ${meta.hasWeight ? '<span style="font-size:12px;color:var(--ink-soft)">%</span>' : ''}
+      <span class="usage-badge${item.usage===0?' zero':''}">${item.usage>0 ? 'مستخدم بـ ' + item.usage + ' خطة' : 'غير مستخدم'}</span>
+      <button class="del-btn" onclick="deleteItem(${item.id})">حذف</button>
+    </div>
+  `).join('');
+}
+
+let flashTimeout;
+function flashSaved(){
+  const el = document.getElementById('savedFlash');
+  el.classList.add('show');
+  clearTimeout(flashTimeout);
+  flashTimeout = setTimeout(() => el.classList.remove('show'), 1800);
+}
+
+function renderAll(){
+  const meta = catMeta(currentCat);
+  document.getElementById('mainTitle').textContent = meta.label;
+  document.getElementById('mainSub').textContent = meta.hasSubject
+    ? 'هاي القائمة مرتبطة بكل مادة على حدة، مع نسبتها من الامتحان'
+    : 'أي تعديل هون بينعكس فوراً على القائمة المنسدلة عند كل معلم بكل المواد';
+  renderSidebar();
+  renderScopeFilters();
+  renderAddRow();
+  renderItemList();
+}
+
+renderAll();
+</script>
+
+</body>
+</html>
