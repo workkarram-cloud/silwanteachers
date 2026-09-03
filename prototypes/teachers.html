@@ -107,6 +107,12 @@
     white-space:nowrap;
   }
   .save-indicator.show{opacity:1;}
+  .save-btn{
+    background:var(--accent);color:#fff;border:none;
+    padding:9px 22px;border-radius:8px;font-size:13.5px;font-weight:600;
+    cursor:pointer;font-family:inherit;white-space:nowrap;
+  }
+  .save-btn:hover{background:#265A4F;}
   .entries{
     margin-top:20px;
     display:flex;
@@ -255,10 +261,17 @@
   .review-box.locked{color:#8A5E17;}
   .review-empty{font-size:13px;color:#9C7A3E;}
   body.role-center .teacher-editable{opacity:.5;pointer-events:none;}
+  .back-bar{max-width:1040px;margin:16px auto 0;padding:0 4px;}
+  .back-bar a{
+    font-size:13px;color:var(--ink-soft);text-decoration:none;
+    display:inline-flex;align-items:center;gap:5px;
+  }
+  .back-bar a:hover{color:var(--accent);}
 </style>
 </head>
 <body>
 
+<div class="back-bar"><a href="../index.html">→ الصفحة الرئيسية</a></div>
 <div class="app">
   <aside class="sidebar">
     <div class="sidebar-header">
@@ -278,7 +291,10 @@
           <button class="role-btn" id="roleCenterBtn" onclick="setRole('center')">عرض المركز المسؤول</button>
         </div>
       </div>
-      <div class="save-indicator" id="saveIndicator">تم الحفظ</div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px">
+        <button class="save-btn" onclick="manualSave()">حفظ</button>
+        <div class="save-indicator" id="saveIndicator">تم الحفظ</div>
+      </div>
     </div>
 
     <div class="entries teacher-editable" id="entries"></div>
@@ -393,6 +409,10 @@ function showSaved(){
   ind.classList.add('show');
   clearTimeout(saveTimeout);
   saveTimeout = setTimeout(() => ind.classList.remove('show'), 1400);
+}
+
+function manualSave(){
+  showSaved();
 }
 
 function chipRow(entryId, field, options, selected){

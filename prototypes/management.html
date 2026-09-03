@@ -81,10 +81,17 @@
   .bar-fill.warn{background:var(--gold);}
   .bar-fill.low{background:var(--red);}
   .pct{font-size:12px;color:var(--ink-soft);white-space:nowrap;}
+  .back-bar{max-width:1040px;margin:16px auto 0;padding:0 4px;}
+  .back-bar a{
+    font-size:13px;color:var(--ink-soft);text-decoration:none;
+    display:inline-flex;align-items:center;gap:5px;
+  }
+  .back-bar a:hover{color:var(--accent);}
 </style>
 </head>
 <body>
 
+<div class="back-bar"><a href="../index.html">→ الصفحة الرئيسية</a></div>
 <div class="app">
   <div class="page-header">
     <h1>لوحة الإدارة - تقارير الخطط السنوية</h1>
@@ -117,6 +124,7 @@
   <div class="chart-card">
     <h3>تغطية المجالات التعليمية مقابل نسبتها بالامتحان</h3>
     <div class="chart-sub">مقارنة بين نسبة الحصص المخصصة لكل مجال ونسبته الفعلية بالامتحان - لرصد فجوات التغطية</div>
+    <div class="chart-sub" id="domainsNote" style="color:var(--gold);margin-top:-8px"></div>
     <div class="chart-wrap"><canvas id="domainsChart" height="160"></canvas></div>
   </div>
 
@@ -132,30 +140,75 @@ const subjects = ["كل المواد","رياضيات","اللغة العربي�
 const grades = ["كل الصفوف","الثالث","الرابع","الخامس","السادس"];
 const months = ["كل الأشهر","أيلول","تشرين أول","تشرين ثاني","كانون أول","كانون ثاني","شباط","آذار","نيسان","أيار"];
 
-const strategiesData = [
-  { name:"التعلم التعاوني", count:38 },
-  { name:"حل المشكلات", count:31 },
-  { name:"العصف الذهني", count:27 },
-  { name:"التعلم باللعب", count:22 },
-  { name:"الخرائط الذهنية", count:15 },
-  { name:"التعلم النشط", count:12 }
-];
-
-const domainsData = [
-  { name:"الأعداد والعمليات", coverage:42, examWeight:35 },
-  { name:"الهندسة والقياس", coverage:22, examWeight:25 },
-  { name:"الإحصاء والاحتمالات", coverage:10, examWeight:20 },
-  { name:"حل المسائل الكلامية", coverage:26, examWeight:20 }
-];
-
 const teachers = [
-  { name:"أ. سارة خليل", subject:"رياضيات", grade:"الرابع", completion:92 },
-  { name:"أ. نور حماد", subject:"اللغة العربية", grade:"الخامس", completion:78 },
-  { name:"أ. محمود درويش", subject:"العلوم", grade:"السادس", completion:100 },
-  { name:"أ. ديمة صالح", subject:"English", grade:"الثالث", completion:45 },
-  { name:"أ. ليان قاسم", subject:"עברית", grade:"الرابع", completion:88 },
-  { name:"أ. وسام عيسى", subject:"المواضيع الاثرائية", grade:"الخامس", completion:30 }
+  { name:"أ. سارة خليل", subject:"رياضيات", grade:"الرابع", month:"تشرين أول", completion:92 },
+  { name:"أ. نور حماد", subject:"اللغة العربية", grade:"الخامس", month:"أيلول", completion:78 },
+  { name:"أ. محمود درويش", subject:"العلوم", grade:"السادس", month:"تشرين ثاني", completion:100 },
+  { name:"أ. ديمة صالح", subject:"English", grade:"الثالث", month:"أيلول", completion:45 },
+  { name:"أ. ليان قاسم", subject:"עברית", grade:"الرابع", month:"تشرين أول", completion:88 },
+  { name:"أ. وسام عيسى", subject:"المواضيع الاثرائية", grade:"الخامس", month:"أيلول", completion:30 }
 ];
+
+// سجلات استخدام الاستراتيجيات - كل سطر يمثل اختيار استراتيجية بخطة معلم بشهر معيّن
+const strategyUsage = [
+  {subject:"رياضيات",grade:"الرابع",month:"تشرين أول",strategy:"التعلم التعاوني"},
+  {subject:"رياضيات",grade:"الرابع",month:"تشرين أول",strategy:"حل المشكلات"},
+  {subject:"رياضيات",grade:"الرابع",month:"أيلول",strategy:"العصف الذهني"},
+  {subject:"اللغة العربية",grade:"الخامس",month:"أيلول",strategy:"التعلم التعاوني"},
+  {subject:"اللغة العربية",grade:"الخامس",month:"أيلول",strategy:"الخرائط الذهنية"},
+  {subject:"اللغة العربية",grade:"الخامس",month:"تشرين أول",strategy:"حل المشكلات"},
+  {subject:"العلوم",grade:"السادس",month:"تشرين ثاني",strategy:"التعلم التعاوني"},
+  {subject:"العلوم",grade:"السادس",month:"تشرين ثاني",strategy:"التعلم باللعب"},
+  {subject:"العلوم",grade:"السادس",month:"تشرين أول",strategy:"حل المشكلات"},
+  {subject:"English",grade:"الثالث",month:"أيلول",strategy:"التعلم باللعب"},
+  {subject:"English",grade:"الثالث",month:"أيلول",strategy:"العصف الذهني"},
+  {subject:"עברית",grade:"الرابع",month:"تشرين أول",strategy:"التعلم التعاوني"},
+  {subject:"עברית",grade:"الرابع",month:"تشرين أول",strategy:"الخرائط الذهنية"},
+  {subject:"עברית",grade:"الرابع",month:"أيلول",strategy:"التعلم النشط"},
+  {subject:"المواضيع الاثرائية",grade:"الخامس",month:"أيلول",strategy:"العصف الذهني"},
+  {subject:"المواضيع الاثرائية",grade:"الخامس",month:"أيلول",strategy:"التعلم النشط"},
+  {subject:"رياضيات",grade:"الرابع",month:"تشرين أول",strategy:"التعلم التعاوني"},
+  {subject:"العلوم",grade:"السادس",month:"تشرين ثاني",strategy:"العصف الذهني"},
+  {subject:"اللغة العربية",grade:"الخامس",month:"تشرين أول",strategy:"التعلم باللعب"},
+  {subject:"رياضيات",grade:"الرابع",month:"أيلول",strategy:"حل المشكلات"}
+];
+
+// المجالات التعليمية لكل مادة (تغطية الخطة مقابل النسبة بالامتحان)
+const domainsBySubject = {
+  "رياضيات": [
+    { name:"الأعداد والعمليات", coverage:42, examWeight:35 },
+    { name:"الهندسة والقياس", coverage:22, examWeight:25 },
+    { name:"الإحصاء والاحتمالات", coverage:10, examWeight:20 },
+    { name:"حل المسائل الكلامية", coverage:26, examWeight:20 }
+  ],
+  "اللغة العربية": [
+    { name:"القراءة والفهم", coverage:38, examWeight:40 },
+    { name:"القواعد والإملاء", coverage:34, examWeight:30 },
+    { name:"التعبير الكتابي", coverage:28, examWeight:30 }
+  ],
+  "العلوم": [
+    { name:"الأحياء", coverage:30, examWeight:35 },
+    { name:"الفيزياء والكيمياء", coverage:33, examWeight:35 },
+    { name:"العلوم البيئية", coverage:20, examWeight:15 },
+    { name:"مهارات علمية", coverage:17, examWeight:15 }
+  ],
+  "English": [
+    { name:"Vocabulary", coverage:28, examWeight:25 },
+    { name:"Grammar", coverage:32, examWeight:35 },
+    { name:"Reading", coverage:25, examWeight:25 },
+    { name:"Writing", coverage:15, examWeight:15 }
+  ],
+  "עברית": [
+    { name:"קריאה", coverage:35, examWeight:40 },
+    { name:"דקדוק", coverage:30, examWeight:30 },
+    { name:"כתיבה", coverage:20, examWeight:30 }
+  ],
+  "المواضيع الاثرائية": [
+    { name:"مهارات القرن 21", coverage:40, examWeight:30 },
+    { name:"مشاريع بحثية", coverage:35, examWeight:40 },
+    { name:"مهارات تفكير", coverage:25, examWeight:30 }
+  ]
+};
 
 function fillSelect(id, options){
   document.getElementById(id).innerHTML = options.map(o => `<option>${o}</option>`).join('');
@@ -166,13 +219,29 @@ fillSelect('fMonth', months);
 
 let strategiesChart, domainsChart;
 
-function renderKPIs(){
-  const avgCompletion = Math.round(teachers.reduce((s,t)=>s+t.completion,0)/teachers.length);
-  const complete = teachers.filter(t=>t.completion>=90).length;
-  const lagging = teachers.filter(t=>t.completion<60).length;
+function getFilters(){
+  return {
+    subject: document.getElementById('fSubject').value,
+    grade: document.getElementById('fGrade').value,
+    month: document.getElementById('fMonth').value
+  };
+}
+
+function matchesFilters(record, f){
+  return (f.subject === "كل المواد" || record.subject === f.subject)
+      && (f.grade === "كل الصفوف" || record.grade === f.grade)
+      && (f.month === "كل الأشهر" || record.month === f.month);
+}
+
+function renderKPIs(filteredTeachers){
+  const avgCompletion = filteredTeachers.length
+    ? Math.round(filteredTeachers.reduce((s,t)=>s+t.completion,0)/filteredTeachers.length)
+    : 0;
+  const complete = filteredTeachers.filter(t=>t.completion>=90).length;
+  const lagging = filteredTeachers.filter(t=>t.completion<60).length;
   document.getElementById('kpiRow').innerHTML = `
     <div class="kpi-card">
-      <div class="kpi-num">${teachers.length}</div>
+      <div class="kpi-num">${filteredTeachers.length}</div>
       <div class="kpi-label">معلم/ة ضمن الفلتر الحالي</div>
     </div>
     <div class="kpi-card accent">
@@ -190,15 +259,25 @@ function renderKPIs(){
   `;
 }
 
-function renderStrategiesChart(){
+function renderStrategiesChart(filteredUsage){
+  const counts = {};
+  filteredUsage.forEach(r => { counts[r.strategy] = (counts[r.strategy]||0) + 1; });
+  const entries = Object.entries(counts).sort((a,b) => b[1]-a[1]);
+
   const ctx = document.getElementById('strategiesChart');
   if (strategiesChart) strategiesChart.destroy();
+
+  if (!entries.length){
+    ctx.getContext('2d').clearRect(0,0,ctx.width,ctx.height);
+    return;
+  }
+
   strategiesChart = new Chart(ctx, {
     type: 'bar',
     data: {
-      labels: strategiesData.map(d => d.name),
+      labels: entries.map(e => e[0]),
       datasets: [{
-        data: strategiesData.map(d => d.count),
+        data: entries.map(e => e[1]),
         backgroundColor: '#2F6F62',
         borderRadius: 5,
         barThickness: 20
@@ -208,23 +287,30 @@ function renderStrategiesChart(){
       indexAxis: 'y',
       plugins: { legend: { display:false } },
       scales: {
-        x: { grid:{ color:'#EFEBE0' }, ticks:{ font:{ family:"'IBM Plex Sans Arabic'", size:11.5 } } },
+        x: { grid:{ color:'#EFEBE0' }, ticks:{ precision:0, font:{ family:"'IBM Plex Sans Arabic'", size:11.5 } } },
         y: { grid:{ display:false }, ticks:{ font:{ family:"'IBM Plex Sans Arabic'", size:12.5 } } }
       }
     }
   });
 }
 
-function renderDomainsChart(){
+function renderDomainsChart(subjectFilter){
+  const subjectForChart = subjectFilter === "كل المواد" ? "رياضيات" : subjectFilter;
+  const data = domainsBySubject[subjectForChart] || [];
+  const noteEl = document.getElementById('domainsNote');
+  noteEl.textContent = subjectFilter === "كل المواد"
+    ? `عرض تجريبي لمادة ${subjectForChart} - اختاري مادة محددة من الفلاتر لعرض بياناتها`
+    : `مادة ${subjectForChart}`;
+
   const ctx = document.getElementById('domainsChart');
   if (domainsChart) domainsChart.destroy();
   domainsChart = new Chart(ctx, {
     type: 'bar',
     data: {
-      labels: domainsData.map(d => d.name),
+      labels: data.map(d => d.name),
       datasets: [
-        { label:'نسبة التغطية بالخطة', data: domainsData.map(d=>d.coverage), backgroundColor:'#2F6F62', borderRadius:4 },
-        { label:'النسبة بالامتحان', data: domainsData.map(d=>d.examWeight), backgroundColor:'#C98A2C', borderRadius:4 }
+        { label:'نسبة التغطية بالخطة', data: data.map(d=>d.coverage), backgroundColor:'#2F6F62', borderRadius:4 },
+        { label:'النسبة بالامتحان', data: data.map(d=>d.examWeight), backgroundColor:'#C98A2C', borderRadius:4 }
       ]
     },
     options: {
@@ -239,8 +325,15 @@ function renderDomainsChart(){
   });
 }
 
-function renderTeacherTable(){
-  const rows = teachers.map(t => {
+function renderTeacherTable(filteredTeachers){
+  if (!filteredTeachers.length){
+    document.getElementById('teacherTable').innerHTML = `
+      <thead><tr><th>المعلم/ة</th><th>المادة</th><th>الصف</th><th>نسبة الإكمال</th></tr></thead>
+      <tbody><tr><td colspan="4" style="text-align:center;color:var(--ink-soft);padding:20px 0">لا يوجد معلمين ضمن هذا الفلتر</td></tr></tbody>
+    `;
+    return;
+  }
+  const rows = filteredTeachers.map(t => {
     const cls = t.completion>=90?'':(t.completion>=60?'warn':'low');
     return `
       <tr>
@@ -262,14 +355,17 @@ function renderTeacherTable(){
 }
 
 function applyFilters(){
-  // Prototype: الفلاتر بتوضح الشكل والتفاعل، بدون منطق فلترة حقيقي حالياً
-  renderKPIs();
+  const f = getFilters();
+  const filteredTeachers = teachers.filter(t => matchesFilters(t, f));
+  const filteredUsage = strategyUsage.filter(r => matchesFilters(r, f));
+
+  renderKPIs(filteredTeachers);
+  renderStrategiesChart(filteredUsage);
+  renderDomainsChart(f.subject);
+  renderTeacherTable(filteredTeachers);
 }
 
-renderKPIs();
-renderStrategiesChart();
-renderDomainsChart();
-renderTeacherTable();
+applyFilters();
 </script>
 
 </body>
